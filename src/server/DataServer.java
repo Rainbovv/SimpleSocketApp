@@ -29,7 +29,6 @@ public class DataServer {
 			serverSocket = new ServerSocket(port);
 
 			System.out.println("Client >> Waiting");
-
 			clientSocket = serverSocket.accept();
 
 			sendData(getData());
@@ -43,7 +42,6 @@ public class DataServer {
 
 	private String getData() throws IOException {
 
-		assert clientSocket != null;
 		DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
 
 		String data = dataInputStream.readUTF();
@@ -56,7 +54,6 @@ public class DataServer {
 
 	private void sendData(String data) throws IOException {
 
-		assert clientSocket != null;
 		DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
 
 		String message = getAvg(data);
