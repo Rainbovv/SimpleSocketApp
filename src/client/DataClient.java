@@ -83,8 +83,10 @@ public class DataClient {
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(
 				new DataInputStream(socket.getInputStream())));
 
+		JSONObject receivedJson = new JSONObject(bufferedReader.readLine());
+
 		System.out.println("Client >> Message from server: "
-				+ bufferedReader.readLine());
+				+ receivedJson);
 	}
 
 	private String dataToString() {

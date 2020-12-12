@@ -67,7 +67,7 @@ public class DataServer {
 
 	private JSONObject getAvg(String data, String option) {
 
-		int sum = 0;
+		double sum = 0;
 		int count = 0;
 
 		for (int i: getSortedData(data, option)) {
@@ -76,7 +76,7 @@ public class DataServer {
 			count++;
 		}
 
-		Map<String, Integer> map = new HashMap<>();
+		Map<String, Double> map = new HashMap<>();
 		map.put("avg", sum / count);
 
 		return new JSONObject(map);
