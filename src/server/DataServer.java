@@ -1,17 +1,22 @@
 package server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import org.json.JSONObject;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DataServer {
 
 	private ServerSocket serverSocket;
 	private Socket clientSocket;
 
-	public DataServer() {}
+	public DataServer() {
+	}
 
 	public ServerSocket getServerSocket() {
 		return serverSocket;
@@ -31,6 +36,8 @@ public class DataServer {
 			System.out.println("Client >> Waiting");
 			clientSocket = serverSocket.accept();
 
+			System.out.println("Server >> Socket Accepted");
+
 			sendData(getData());
 
 			System.out.println("Server >> Ending");
@@ -40,37 +47,55 @@ public class DataServer {
 		}
 	}
 
-	private String getData() throws IOException {
+	private JSONObject getData() throws IOException {
 
-		DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(
+				new DataInputStream(clientSocket.getInputStream())));
 
-		String data = dataInputStream.readUTF();
-
-		System.out.println("Server >> The next list has been received: " + data);
-
-		return data;
-
+		return new JSONObject(bufferedReader.readLine());
 	}
 
-	private void sendData(String data) throws IOException {
+	private void sendData(JSONObject json) throws IOException {
 
-		DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+		PrintWriter printWriter = new PrintWriter(new DataOutputStream(clientSocket.getOutputStream()));
 
-		String message = getAvg(data);
+		JSONObject jsonMessage = getAvg(json.get("data").toString(), json.get("option").toString());
 
-		System.out.println("Server >> Sending the message: " + message);
-		dataOutputStream.writeUTF(message);
+		printWriter.println(jsonMessage.toString());
+		printWriter.flush();
 	}
 
-	private String getAvg(String data) {
+	private JSONObject getAvg(String data, String option) {
 
 		int sum = 0;
 		int count = 0;
-		for (String num : data.split(",") ) {
-			sum += Integer.parseInt(num);
-			count ++;
+
+		for (int i: getSortedData(data, option)) {
+
+			sum += i;
+			count++;
 		}
 
-		return "The arithmetic average is " + sum / count;
+		Map<String, Integer> map = new HashMap<>();
+		map.put("avg", sum / count);
+
+		return new JSONObject(map);
+	}
+
+	private List<Integer> getSortedData(String data, String option) {
+
+		List<Integer> sortedData = new ArrayList<>();
+
+		for (String s : data.split(",")) {
+			int i = Integer.parseInt(s);
+
+			if (option.equals("positive") && i >= 0)
+				sortedData.add(i);
+
+			if (option.equals("negative") && i < 0)
+				sortedData.add(i);
+		}
+
+		return sortedData;
 	}
 }

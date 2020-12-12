@@ -1,18 +1,40 @@
 package client;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import org.json.JSONObject;
+
+import java.io.*;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DataClient {
 
 	private Socket socket;
 	private List<Integer> data;
+	private String option;
 
-	public DataClient(List<Integer> data) {
+	public DataClient(List<Integer> data, String option) {
 		this.data = data;
+		this.option = option;
+	}
+
+	public String getOption() {
+		return option;
+	}
+
+	public void setOption(String option) {
+		this.option = option;
+	}
+
+	public Map<String, String> getDataWithOption() {
+
+		Map<String, String> data = new HashMap<>();
+
+		data.put("data", dataToString());
+		data.put("option", getOption());
+
+		return data;
 	}
 
 	public List<Integer> getData() {
@@ -38,7 +60,7 @@ public class DataClient {
 
 			return true;
 
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return false;
@@ -46,20 +68,23 @@ public class DataClient {
 
 	private void sendData() throws IOException {
 
-		DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-		String list = dataToString();
+		PrintWriter printWriter = new PrintWriter(new DataOutputStream(socket.getOutputStream()));
 
-		System.out.println("Client >> Sending the list: " + list);
-		dataOutputStream.writeUTF(list);
-		dataOutputStream.flush();
+		JSONObject jsonObject = new JSONObject(getDataWithOption());
+
+		System.out.println("Client >> Sending the list: " + dataToString());
+
+		printWriter.println(jsonObject.toString());
+		printWriter.flush();
 	}
 
 	private void receiveData() throws IOException {
 
-		DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(
+				new DataInputStream(socket.getInputStream())));
 
 		System.out.println("Client >> Message from server: "
-				+ dataInputStream.readUTF());
+				+ bufferedReader.readLine());
 	}
 
 	private String dataToString() {
